@@ -1,9 +1,10 @@
 ﻿using Spectre.Console;
-public class HiddenGameBoard : GameBoard, IGameboard
+using Battleship;
+public class HiddenGameBoard : Gameboard
 {
-    public GameBoard gameboard;
+    public Gameboard gameboard;
 
-    public HiddenGameBoard(GameBoard board)
+    public HiddenGameBoard(Gameboard board)
     {
         gameboard = board;
         for (int row = 0; row < board.Size; row++)
@@ -15,49 +16,19 @@ public class HiddenGameBoard : GameBoard, IGameboard
         }
     }
 
-    public override void Display()
+    public void ApplyGuess(Guess guess)
     {
-        var table = new Table().Border(TableBorder.Rounded).BorderColor(Color.DarkCyan);
-
-        // Add column headers
-        table.AddColumn(new TableColumn(" ").Centered().NoWrap());
-        for (int col = 1; col <= Size; col++)
-        {
-            table.AddColumn(new TableColumn(col.ToString()).Centered().NoWrap());
-        }
-
-        // Add rows with row headers and cell values
-        for (int row = 0; row < Size; row++)
-        {
-            var rowHeader = ((char)('A' + row)).ToString();
-            var rowData = new string[Size + 1];
-            rowData[0] = rowHeader;
-            for (int col = 1; col <= Size; col++)
-            {
-                rowData[col] = Cells[row, col - 1].Contents;
-            }
-            table.AddRow(rowData);
-
-            // Add a rule (line) between rows, except after the last row
-            if (row < Size - 1)
-            {
-                table.AddEmptyRow();
-            }
-        }
-
-        // Set a fixed column width for square grid boxes
-        table.Columns[0].Width(3);
-        for (int col = 1; col <= Size; col++)
-        {
-            table.Columns[col].Width(3);
-        }
-
-        AnsiConsole.Write(table);
+        Guesses.Add(guess);
+    }
+    public bool HasLost()
+    {
+        return false;
     }
 
     public void RevealCell(char row, int col)
     {
-        gameboard.GetCell(row, col);
+        //Cell cell = gameboard.CheckCell(row, col);
+        //Cells[row - 'A', col - 1].Status = cell.Status;
     }
 
 }

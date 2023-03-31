@@ -1,4 +1,6 @@
-﻿public class Cell
+﻿using System;
+
+public class Cell
 {
     public char Row { get; }
     public int Column { get; }

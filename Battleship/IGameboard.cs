@@ -1,7 +1,8 @@
-﻿public interface IGameboard
+﻿using Spectre.Console;
+public interface IGameboard
 {
     int Size { get; }
     Cell[,] Cells { get; }
 
-    void Display();
+    Table Display();
 }

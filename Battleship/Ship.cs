@@ -1,4 +1,6 @@
 ﻿using Spectre.Console;
+using System;
+
 public class Ship
 {
     public int Length { get; }
@@ -6,7 +8,7 @@ public class Ship
     public int Hits { get; private set; }
     public Cell[] OccupiedCells { get; }
 
-    public Ship(int length, Orientation orientation, char row, int column, GameBoard board)
+    public Ship(int length, Orientation orientation, char row, int column)
     {
         Length = length;
         ShipOrientation = orientation;
@@ -63,19 +65,16 @@ public class Ship
         var rowPrompt = new TextPrompt<char>("Enter the row coordinate:")
             .Validate(c => char.IsLetter(c));
         var row = AnsiConsole.Prompt(rowPrompt);
-        
+        row = Char.ToUpper(row);
 
         var columnPrompt = new TextPrompt<int>("Enter the column coordinate:")
             .Validate(n => n >= 1 && n <= 10);
         var column = AnsiConsole.Prompt(columnPrompt);
 
-        return new Ship(length, orientation, row, column, null);
+        return new Ship(length, orientation, row, column);
     }
 
 }
-
-
-
 
 public enum Orientation
 {
