@@ -1,21 +1,33 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
+[DataContract]
 public class Cell
 {
-    public char Row { get; }
-    public int Column { get; }
+    [DataMember]
+    public char Row { get; set; }
+
+    [DataMember]
+    public int Column { get; set; }
+
+    [DataMember]
     public CellStatus Status { get; set; }
+
+    [DataMember]
     public string Contents { get; set; }
+
+    public Cell() { } // Add a parameterless constructor for serialization
 
     public Cell(char row, int column, CellStatus status)
     {
         Row = row;
         Column = column;
-        Status = status;
-        SetContents(status);
+        SetStatus(status);
     }
-    public void SetContents(CellStatus status)
+
+    public void SetStatus(CellStatus status)
     {
+        Status = status;
         switch (status)
         {
             case CellStatus.Empty:
@@ -27,6 +39,9 @@ public class Cell
             case CellStatus.Hit:
                 Contents = "[red]X[/]";
                 return;
+            case CellStatus.Miss:
+                Contents = "[white]O[/]";
+                return;
             case CellStatus.Unknown:
                 Contents = "[grey]?[/]";
                 return;
@@ -35,6 +50,7 @@ public class Cell
         }
     }
 }
+
 public enum CellStatus
 {
     Empty,

@@ -50,30 +50,6 @@ public class Ship
         Hits++;
     }
 
-    public static Ship CreateShipPrompt()
-    {
-        var lengthPrompt = new TextPrompt<int>("Enter the length of the ship:")
-            .Validate(n => n > 0)
-            .DefaultValue(1);
-        var length = AnsiConsole.Prompt(lengthPrompt);
-
-        var orientationPrompt = new SelectionPrompt<Orientation>()
-            .Title("Select the ship's orientation:")
-            .AddChoices(Orientation.Up, Orientation.Down, Orientation.Left, Orientation.Right);
-        var orientation = AnsiConsole.Prompt(orientationPrompt);
-
-        var rowPrompt = new TextPrompt<char>("Enter the row coordinate:")
-            .Validate(c => char.IsLetter(c));
-        var row = AnsiConsole.Prompt(rowPrompt);
-        row = Char.ToUpper(row);
-
-        var columnPrompt = new TextPrompt<int>("Enter the column coordinate:")
-            .Validate(n => n >= 1 && n <= 10);
-        var column = AnsiConsole.Prompt(columnPrompt);
-
-        return new Ship(length, orientation, row, column);
-    }
-
 }
 
 public enum Orientation

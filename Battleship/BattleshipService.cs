@@ -53,24 +53,46 @@ namespace Battleship
         public Guess GetOpponentGuess(Player player)
         {
 
-            Player opponent = GetOpponent(player);
-            if (_playerGuesses.TryGetValue(opponent, out Guess Guess))
+            List<Player> opponents = GetOpponents(player);
+            foreach (Player opponent in opponents)
             {
-                _playerGuesses.Remove(opponent);
-                return Guess;
+                if (_playerGuesses.TryGetValue(opponent, out Guess Guess))
+                {
+                    _playerGuesses.Remove(opponent);
+                    return Guess;
+                }
             }
 
             return null;
         }
 
-        private Player GetOpponent(Player player)
+        private List<Player> GetOpponents(Player player)
         {
-            return _players.Find(p => !p.Name.Equals(player.Name));
+            return _players.FindAll(p => !p.Name.Equals(player.Name));
         }
         public bool WaitForPlayers(int playerCount = 2)
         {
             return _players.Count < playerCount;
         }
+        public bool IsTurn(Player player)
+        {
+            return _players.Find(p => p.Name == player.Name).IsTurn;
+        }
+        public void StartGame()
+        {
+            _players[0].IsTurn = true;
+        }
+
+        public void NextTurn()
+        {
+            int currentPlayerIndex = _players.FindIndex(p => p.IsTurn);
+            _players[currentPlayerIndex].IsTurn = false;
+
+            int nextPlayerIndex = (currentPlayerIndex + 1) % _players.Count;
+            _players[nextPlayerIndex].IsTurn = true;
+            Console.WriteLine("Player " + nextPlayerIndex + 1 + "'s turn ");
+        }
+
 
     }
 }

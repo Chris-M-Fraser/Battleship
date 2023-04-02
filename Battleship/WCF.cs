@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.ServiceModel;
 
@@ -21,6 +22,12 @@ namespace Battleship
         Guess GetOpponentGuess(Player player);
         [OperationContract]
         bool WaitForPlayers(int playerCount = 2);
+        [OperationContract]
+        void NextTurn();
+        [OperationContract]
+        void StartGame();
+        [OperationContract]
+        bool IsTurn(Player player);
     }
 
     // Define the data contract for the Player class
@@ -29,10 +36,13 @@ namespace Battleship
     {
         [DataMember]
         public string Name { get; set; }
+        [DataMember]
+        public bool IsTurn { get; set; }
 
         public Player(string name)
         {
             Name = name;
+            IsTurn = false;
         }
     }
 
