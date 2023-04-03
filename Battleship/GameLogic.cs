@@ -87,6 +87,15 @@ namespace Battleship
             }
         }
 
+        public List<Cell> GetOccupiedCells()
+        {
+            List<Cell> cells = new List<Cell>();
+            foreach(Ship ship in Ships)
+            {
+                cells.AddRange(ship.OccupiedCells);
+            }
+            return cells;
+        }
 
         private bool CanPlaceShip(Ship ship)
         {
@@ -120,34 +129,40 @@ namespace Battleship
             return true;
         }
 
-        public void ApplyGuessResult(char row, int column, GuessResult result)
+        public void ApplyCellStatus(char row, int column, CellStatus result)
         {
-            if (result == GuessResult.Hit)
+            if (result == CellStatus.Hit)
             {
-                Cells[row - 'A', column].SetStatus(CellStatus.Hit);
+                Cells[row - 'A', column - 1].SetStatus(CellStatus.Hit);
                 AnsiConsole.Write("Hit!");
             }
-            else if (result == GuessResult.Miss)
+            else if (result == CellStatus.Miss)
             {
-                Cells[row - 'A', column].SetStatus(CellStatus.Miss);
+                Cells[row - 'A', column - 1].SetStatus(CellStatus.Miss);
                 AnsiConsole.Write("Miss!");
-
             }
         }
 
 
-        public GuessResult AddGuess(Guess guess)
+        public CellStatus AddGuess(Guess guess)
         {
+            CellStatus status = CellStatus.Miss;
             foreach(Ship ship in Ships)
             {
-                Cell cell = ship.OccupiedCells.First(s => s.Row == guess.Row && s.Column == guess.Column);
+                Cell cell = ship.OccupiedCells.FirstOrDefault(s => s.Row == guess.Row && s.Column == guess.Column);
                 if(cell != null)
                 {
                     ship.Hit();
-                    return GuessResult.Hit;
+                    status = CellStatus.Hit;
+                    break;
+                }
+                else
+                {
+                    status = CellStatus.Miss;
                 }
             }
-            return GuessResult.Miss;
+            ApplyCellStatus(guess.Row, guess.Column, status);
+            return status;
 
         }
 
@@ -159,14 +174,14 @@ namespace Battleship
             table.AddColumn(new TableColumn(" ").Centered().NoWrap());
             for (int col = 1; col <= Size; col++)
             {
-                table.AddColumn(new TableColumn($"[green]{ col }[/]").Centered().NoWrap());
+                table.AddColumn(new TableColumn($"[lime]{ col }[/]").Centered().NoWrap());
             }
             table.AddEmptyRow();
 
             // Add rows with row headers and cell values
             for (int row = 0; row < Size; row++)
             {
-                var rowHeader = $"[green]{(char)('A' + row)}[/]";
+                var rowHeader = $"[lime]{(char)('A' + row)}[/]";
                 var rowData = new string[Size + 1];
                 rowData[0] = rowHeader;
                 for (int col = 1; col <= Size; col++)

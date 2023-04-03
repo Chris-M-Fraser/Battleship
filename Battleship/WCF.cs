@@ -13,11 +13,7 @@ namespace Battleship
         void RegisterPlayer(Player player);
 
         [OperationContract]
-        void SendPlayerGuess(Player player, Guess guess);
-
-        [OperationContract]
-        GuessResult GetGuessResult(Player player);
-
+        CellStatus SendPlayerGuess(Player player, Guess Guess);
         [OperationContract]
         Guess GetOpponentGuess(Player player);
         [OperationContract]
@@ -38,11 +34,18 @@ namespace Battleship
         public string Name { get; set; }
         [DataMember]
         public bool IsTurn { get; set; }
+        [DataMember]
+        public List<Cell> OccupiedCells { get; set; }
 
         public Player(string name)
         {
             Name = name;
             IsTurn = false;
+            OccupiedCells = new List<Cell>();
+        }
+        public void AddCells(List<Cell> cells)
+        {
+            OccupiedCells.AddRange(cells);
         }
     }
 
@@ -63,20 +66,20 @@ namespace Battleship
     }
 }
 
-    // Define the data contract for the GuessResult enum
-    [DataContract]
-    public enum GuessResult
-    {
-        [EnumMember]
-        Miss,
+    // Define the data contract for the CellStatus enum
+    //[DataContract]
+    //public enum CellStatus
+    //{
+    //    [EnumMember]
+    //    Miss,
 
-        [EnumMember]
-        Hit,
+    //    [EnumMember]
+    //    Hit,
 
-        [EnumMember]
-        Sunk,
+    //    [EnumMember]
+    //    Sunk,
 
-        [EnumMember]
-        Win
-    }
+    //    [EnumMember]
+    //    Win
+    //}
 }

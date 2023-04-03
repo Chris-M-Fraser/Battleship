@@ -34,7 +34,7 @@ public class Cell
                 Contents = "[teal]~[/]";
                 return;
             case CellStatus.Occupied:
-                Contents = "[grey]S[/]";
+                Contents = "[silver]S[/]";
                 return;
             case CellStatus.Hit:
                 Contents = "[red]X[/]";
@@ -50,12 +50,17 @@ public class Cell
         }
     }
 }
-
+[DataContract]
 public enum CellStatus
 {
+    [EnumMember]
     Empty,
+    [EnumMember]
     Occupied,
+    [EnumMember]
     Hit,
+    [EnumMember]
     Miss,
+    [EnumMember]
     Unknown
 }

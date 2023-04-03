@@ -19,16 +19,13 @@ public class HiddenGameBoard : Gameboard
     public void ApplyGuess(Guess guess)
     {
         Guesses.Add(guess);
+        CellStatus status = gameboard.AddGuess(guess);
+        Cells[guess.Row - 'A', guess.Column - 1].SetStatus(status);
+
     }
     public bool HasLost()
     {
         return false;
-    }
-
-    public void RevealCell(char row, int col)
-    {
-        //Cell cell = gameboard.CheckCell(row, col);
-        //Cells[row - 'A', col - 1].Status = cell.Status;
     }
 
 }

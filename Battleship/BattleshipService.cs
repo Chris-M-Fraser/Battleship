@@ -10,14 +10,12 @@ namespace Battleship
     public class BattleshipService : IBattleshipService
     {
         private readonly List<Player> _players;
-        private readonly Dictionary<Player, Guess> _playerGuesses;
-        private readonly Dictionary<Player, GuessResult> _GuessResults;
+        private readonly Dictionary<string, Guess> _playerGuesses;
 
         public BattleshipService()
         {
             _players = new List<Player>();
-            _playerGuesses = new Dictionary<Player, Guess>();
-            _GuessResults = new Dictionary<Player, GuessResult>();
+            _playerGuesses = new Dictionary<string, Guess>();
         }
 
         public void RegisterPlayer(Player player)
@@ -33,38 +31,45 @@ namespace Battleship
             }
         }
 
-        public void SendPlayerGuess(Player player, Guess Guess)
+        public CellStatus SendPlayerGuess(Player player, Guess Guess)
         {
-            _playerGuesses[player] = Guess;
-            Console.WriteLine($"{player.Name} made a Guess at ({Guess.Row}{Guess.Column}).");
-        }
-
-        public GuessResult GetGuessResult(Player player)
-        {
-            if (_GuessResults.TryGetValue(player, out GuessResult result))
+            _playerGuesses[player.Name] = Guess;
+            List<Player> opponents = GetOpponents(player);
+            CellStatus status = CellStatus.Miss;
+            foreach (Player opponent in opponents)
             {
-                _GuessResults.Remove(player);
-                return result;
+                if (opponent.OccupiedCells.Any(c => c.Row == Guess.Row && c.Column == Guess.Column))
+                    foreach (Cell cell in opponent.OccupiedCells)
+                    {
+                        if (cell.Row == Guess.Row && cell.Column == Guess.Column)
+                        {
+                            status = CellStatus.Hit;
+                        }
+                    }
             }
+            Console.WriteLine($"{player.Name} made a Guess at ({Guess.Row}{Guess.Column}).");
+            Console.WriteLine($"Result was {status}!");
 
-            return GuessResult.Miss;
+            return status;
+
         }
 
         public Guess GetOpponentGuess(Player player)
         {
-
             List<Player> opponents = GetOpponents(player);
             foreach (Player opponent in opponents)
             {
-                if (_playerGuesses.TryGetValue(opponent, out Guess Guess))
+                if (_playerGuesses.ContainsKey(opponent.Name))
                 {
-                    _playerGuesses.Remove(opponent);
-                    return Guess;
+                    Guess guess = _playerGuesses[opponent.Name];
+                    _playerGuesses.Remove(opponent.Name);
+                    return guess;
                 }
             }
 
             return null;
         }
+
 
         private List<Player> GetOpponents(Player player)
         {
@@ -77,6 +82,10 @@ namespace Battleship
         public bool IsTurn(Player player)
         {
             return _players.Find(p => p.Name == player.Name).IsTurn;
+        }
+        public Player GetPlayer(string name)
+        {
+            return _players.Find(p => p.Name == name);
         }
         public void StartGame()
         {

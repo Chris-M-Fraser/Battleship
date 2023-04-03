@@ -1,28 +1,4 @@
 ﻿using Spectre.Console;
-
-//Console.WindowHeight = Console.LargestWindowHeight;
-//Console.WindowWidth = Console.LargestWindowWidth;
-
-
-//var gameBoard = new GameBoard();
-//var hiddenGameBoard = new HiddenGameBoard(gameBoard);
-
-//AnsiConsole.Write(new Columns(new Table[] { gameBoard.Display(), hiddenGameBoard.Display() }));
-
-//AnsiConsole.WriteLine();
-//Ship ship = Ship.CreateShipPrompt();
-
-//gameBoard.PlaceShip(ship);
-
-
-//AnsiConsole.Clear();
-//AnsiConsole.Write(new Columns(new Table[] { gameBoard.Display(), hiddenGameBoard.Display() }));
-
-//hiddenGameBoard.RevealCell('A', 1);
-
-//AnsiConsole.Clear();
-//AnsiConsole.Write(new Columns(new Table[] { gameBoard.Display(), hiddenGameBoard.Display() }));
-
 using System;
 using Battleship;
 using System.ServiceModel;
@@ -34,6 +10,8 @@ namespace Battleship
     {
         static void Main(string[] args)
         {
+            Console.WindowHeight = 60;
+            Console.WindowWidth = Console.LargestWindowWidth - 10;
             // Initialize WCF client for the multiplayer communication
             var channelFactory = new ChannelFactory<IBattleshipService>(new BasicHttpBinding(), new EndpointAddress("http://localhost:8000/BattleshipService"));
             var serviceClient = channelFactory.CreateChannel();
@@ -44,6 +22,7 @@ namespace Battleship
                 .Centered()
                 .Color(Color.Red));
             AnsiConsole.WriteLine();
+            AnsiConsole.Write(new Rule("Chris Fraser & Shea De Vries-Thomas"));
 
 
 
@@ -51,13 +30,10 @@ namespace Battleship
             AnsiConsole.WriteLine("\tEnter your name:");
             string playerName = AnsiConsole.Ask<string>("Name: ");
             var player = new Player(playerName);
-            var opponent = new Player("opponent");
 
-            // Register player with the WCF service
-            //serviceClient.RegisterPlayer(opponent);
 
             // Initialize game board and hidden game board
-            var gameBoard = new Gameboard();            
+            var gameBoard = new Gameboard();
             var hiddenGameBoard = new HiddenGameBoard(gameBoard);
 
             // Set up ships on the game board
@@ -65,16 +41,28 @@ namespace Battleship
 
             DisplayGameboards(gameBoard, hiddenGameBoard);
 
+            player.AddCells(gameBoard.GetOccupiedCells());
+
             serviceClient.RegisterPlayer(player);
-            // Game loop
-            Console.WriteLine("Waiting for players...");
-            while (serviceClient.WaitForPlayers())
+
+
+            AnsiConsole.Status()
+            .Start("\t[lime]Waiting for players...[/]", ctx =>
             {
-                System.Threading.Thread.Sleep(1000);
-            }
+                ctx.Spinner(Spinner.Known.Triangle);
+                ctx.SpinnerStyle(Style.Parse("green"));
+                while (serviceClient.WaitForPlayers())
+                {
+                    System.Threading.Thread.Sleep(1000);
+                }
+            });
+
+
 
             bool gameInProgress = true;
             serviceClient.StartGame();
+
+            // Game loop
             while (gameInProgress)
             {
                 if (serviceClient.IsTurn(player))
@@ -96,30 +84,54 @@ namespace Battleship
                     // Get player's Guess
                     int column;
                     char row;
-                    do
-                    {
-                        column = AnsiConsole.Ask<int>("Enter column (1-10): ");
-                        row = AnsiConsole.Ask<char>("Enter row (A-J): ");
-                        row = Char.ToUpper(row);
-                    } while (!gameBoard.IsValidGuess(row, column));
+                    var coordinatesPrompt = new TextPrompt<string>("[green]Enter the coordinates (A1-J10):[/]")
+                .Validate(coord =>
+                {
+                    if (coord.Length < 2 || coord.Length > 3) return ValidationResult.Error("[red]Invalid coordinates format.[/]");
+                    char rowChar = Char.ToUpper(coord[0]);
+                    if (rowChar < 'A' || rowChar > 'J') return ValidationResult.Error("[red]Row must be between A and J.[/]");
+
+                    if (!int.TryParse(coord.Substring(1), out int columnInt)) return ValidationResult.Error("[red]Invalid column value.[/]");
+                    if (columnInt < 1 || columnInt > 10) return ValidationResult.Error("[red]Column must be between 1 and 10.[/]");
+
+                    return ValidationResult.Success();
+                });
+
+                    string coordinates = AnsiConsole.Prompt(coordinatesPrompt);
+                    row = Char.ToUpper(coordinates[0]);
+                    column = int.Parse(coordinates.Substring(1));
 
                     // Send player's Guess to the WCF service
-                    serviceClient.SendPlayerGuess(player, new Guess(row, column));
-
-                    // Get the result of player's Guess from the WCF service
-                    GuessResult result = serviceClient.GetGuessResult(player);
+                    CellStatus result = serviceClient.SendPlayerGuess(player, new Guess(row, column));
+                    AnsiConsole.Write(
+                        new FigletText(result.ToString() + "!")
+                        .Centered()
+                        .Color(Color.Red));
+                    System.Threading.Thread.Sleep(1000);
 
                     // Update the game board with the result
-                    hiddenGameBoard.ApplyGuessResult(row, column, result);
+                    hiddenGameBoard.ApplyCellStatus(row, column, result);
                     DisplayGameboards(gameBoard, hiddenGameBoard);
                     serviceClient.NextTurn();
                 }
+                else
+                {
+                    AnsiConsole.Status()
+                    .Start("\t[lime]Waiting for turn...[/]", ctx =>
+                    {
+                        ctx.Spinner(Spinner.Known.Triangle);
+                        ctx.SpinnerStyle(Style.Parse("green"));
+                        while (!serviceClient.IsTurn(player))
+                        {
+                            System.Threading.Thread.Sleep(1000);
+                        }
+                    });
+                }
 
-                System.Threading.Thread.Sleep(1000);
                 continue;
 
                 // Check if the player won
-                //if (result == GuessResult.Win)
+                //if (result == CellStatus.Win)
                 //{
                 //    gameInProgress = false;
                 //    AnsiConsole.WriteLine("You won!");
@@ -132,18 +144,23 @@ namespace Battleship
 
         private static void SetupShips(Gameboard gameBoard)
         {
-            //int[] shipLengths = new int[] { 2, 3, 3, 4, 5 };
-            //foreach (int length in shipLengths)
-            //{
-            //    gameBoard.PlaceShipPrompt(length);
-            //}
-            gameBoard.PlaceShip(new Ship(3, Orientation.Right, 'A', 3));
+            int[] shipLengths = new int[] { 2, 3, 3, 4, 5 };
+            foreach (int length in shipLengths)
+            {
+                gameBoard.PlaceShipPrompt(length);
+            }
+
+            //gameBoard.PlaceShip(new Ship(3, Orientation.Right, 'A', 3));
+
 
         }
         private static void DisplayGameboards(Gameboard gameBoard, HiddenGameBoard hiddenGameBoard)
         {
             AnsiConsole.Clear();
+            AnsiConsole.Write(new Columns(new Text("Your board"), new Text("Opponent board")));
             AnsiConsole.Write(new Columns(gameBoard.Display(), hiddenGameBoard.Display()));
+            AnsiConsole.WriteLine();
+            AnsiConsole.Write(new Rule());
         }
     }
 
