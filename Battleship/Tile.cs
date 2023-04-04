@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 
 [DataContract]
-public class Cell
+public class Tile
 {
     [DataMember]
     public char Row { get; set; }
@@ -11,47 +11,48 @@ public class Cell
     public int Column { get; set; }
 
     [DataMember]
-    public CellStatus Status { get; set; }
+    public TileStatus Status { get; set; }
 
     [DataMember]
     public string Contents { get; set; }
 
-    public Cell() { } // Add a parameterless constructor for serialization
+    public Tile() { } // Add a parameterless constructor for serialization
 
-    public Cell(char row, int column, CellStatus status)
+    public Tile(char row, int column, TileStatus status)
     {
         Row = row;
         Column = column;
         SetStatus(status);
     }
 
-    public void SetStatus(CellStatus status)
+    public void SetStatus(TileStatus status)
     {
         Status = status;
         switch (status)
         {
-            case CellStatus.Empty:
+            case TileStatus.Empty:
                 Contents = "[teal]~[/]";
                 return;
-            case CellStatus.Occupied:
+            case TileStatus.Occupied:
                 Contents = "[silver]S[/]";
                 return;
-            case CellStatus.Hit:
+            case TileStatus.Sunk:
+            case TileStatus.Hit:
                 Contents = "[red]X[/]";
                 return;
-            case CellStatus.Miss:
+            case TileStatus.Miss:
                 Contents = "[white]O[/]";
                 return;
-            case CellStatus.Unknown:
+            case TileStatus.Unknown:
                 Contents = "[grey]?[/]";
                 return;
             default:
-                throw new ArgumentOutOfRangeException(nameof(Status), "Invalid cell status");
+                throw new ArgumentOutOfRangeException(nameof(Status), "Invalid tile status");
         }
     }
 }
 [DataContract]
-public enum CellStatus
+public enum TileStatus
 {
     [EnumMember]
     Empty,
@@ -61,6 +62,8 @@ public enum CellStatus
     Hit,
     [EnumMember]
     Miss,
+    [EnumMember]
+    Sunk,
     [EnumMember]
     Unknown
 }

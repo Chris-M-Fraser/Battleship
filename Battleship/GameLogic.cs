@@ -8,21 +8,19 @@ namespace Battleship
     public class Gameboard
     {
         public int Size { get; }
-        public Cell[,] Cells { get; private set; }
+        public Tile[,] Tiles { get; private set; }
         public List<Ship> Ships { get; private set; }
-        public List<Guess> Guesses { get; set; }
 
         public Gameboard(int size = 10)
         {
             Size = size;
-            Cells = new Cell[size, size];
+            Tiles = new Tile[size, size];
             Ships = new List<Ship>();
-            Guesses = new List<Guess>();
             for (int row = 0; row < size; row++)
             {
                 for (int col = 0; col < size; col++)
                 {
-                    Cells[row, col] = new Cell((char)('A' + row), col, CellStatus.Empty);
+                    Tiles[row, col] = new Tile((char)('A' + row), col, TileStatus.Empty);
                 }
             }
         }
@@ -30,14 +28,14 @@ namespace Battleship
 
         public void PlaceShip(Ship ship)
         {
-            foreach (var shipCell in ship.OccupiedCells)
+            foreach (var shipCell in ship.OccupiedTiles)
             {
-                Cells[shipCell.Row - 'A', shipCell.Column - 1].SetStatus(CellStatus.Occupied);
+                Tiles[shipCell.Row - 'A', shipCell.Column - 1].SetStatus(TileStatus.Occupied);
             }
             Ships.Add(ship);
         }
 
-        public void PlaceShipPrompt(int length)
+        public Ship PlaceShipPrompt(int length)
         {
             while (true)
             {
@@ -77,7 +75,7 @@ namespace Battleship
                 if (CanPlaceShip(ship))
                 {
                     PlaceShip(ship);
-                    break;
+                    return ship;
                 }
                 else
                 {
@@ -87,26 +85,37 @@ namespace Battleship
             }
         }
 
-        public List<Cell> GetOccupiedCells()
+        public bool HasLost()
         {
-            List<Cell> cells = new List<Cell>();
+            foreach (Ship ship in Ships)
+            {
+                if (!ship.Sunk)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public List<Tile> GetOccupiedTiles()
+        {
+            List<Tile> tiles = new List<Tile>();
             foreach(Ship ship in Ships)
             {
-                cells.AddRange(ship.OccupiedCells);
+                tiles.AddRange(ship.OccupiedTiles);
             }
-            return cells;
+            return tiles;
         }
 
         private bool CanPlaceShip(Ship ship)
         {
-            foreach (var shipCell in ship.OccupiedCells)
+            foreach (var shipCell in ship.OccupiedTiles)
             {
                 if (shipCell.Row > 'J' || shipCell.Row < 'A' || shipCell.Column > 10 || shipCell.Column < 1)
                 {
                     return false;
                 }
-                Cell cell = GetCell(shipCell.Row, shipCell.Column);
-                if (cell.Status != CellStatus.Empty)
+                Tile tile = GetCell(shipCell.Row, shipCell.Column);
+                if (tile.Status != TileStatus.Empty)
                 {
                     return false;
                 }
@@ -115,53 +124,42 @@ namespace Battleship
             return true;
         }
 
-
-        public bool IsValidGuess(char row, int column)
+        public void ApplyTileStatus(char row, int column, TileStatus status)
         {
-            if(row > 'J' || row < 'A' || column > 10 || column < 1)
+            if (status == TileStatus.Sunk)
             {
-                return false;
+                Tiles[row - 'A', column - 1].SetStatus(TileStatus.Hit);
             }
-            else if(Guesses.Contains(new Guess(row, column)))
+            else
             {
-                return false;
-            }
-            return true;
-        }
-
-        public void ApplyCellStatus(char row, int column, CellStatus result)
-        {
-            if (result == CellStatus.Hit)
-            {
-                Cells[row - 'A', column - 1].SetStatus(CellStatus.Hit);
-                AnsiConsole.Write("Hit!");
-            }
-            else if (result == CellStatus.Miss)
-            {
-                Cells[row - 'A', column - 1].SetStatus(CellStatus.Miss);
-                AnsiConsole.Write("Miss!");
+                Tiles[row - 'A', column - 1].SetStatus(status);
             }
         }
 
 
-        public CellStatus AddGuess(Guess guess)
+
+        public TileStatus AddGuess(Guess guess)
         {
-            CellStatus status = CellStatus.Miss;
+            TileStatus status = TileStatus.Miss;
             foreach(Ship ship in Ships)
             {
-                Cell cell = ship.OccupiedCells.FirstOrDefault(s => s.Row == guess.Row && s.Column == guess.Column);
-                if(cell != null)
+                Tile tile = ship.OccupiedTiles.FirstOrDefault(s => s.Row == guess.Row && s.Column == guess.Column);
+                if(tile != null)
                 {
-                    ship.Hit();
-                    status = CellStatus.Hit;
+                    ship.Hit(guess.Row, guess.Column);
+                    if (ship.Sunk)
+                    {
+                        status = TileStatus.Sunk;
+                    }
+                    status = TileStatus.Hit;
                     break;
                 }
                 else
                 {
-                    status = CellStatus.Miss;
+                    status = TileStatus.Miss;
                 }
             }
-            ApplyCellStatus(guess.Row, guess.Column, status);
+            ApplyTileStatus(guess.Row, guess.Column, status);
             return status;
 
         }
@@ -178,7 +176,7 @@ namespace Battleship
             }
             table.AddEmptyRow();
 
-            // Add rows with row headers and cell values
+            // Add rows with row headers and tile values
             for (int row = 0; row < Size; row++)
             {
                 var rowHeader = $"[lime]{(char)('A' + row)}[/]";
@@ -186,7 +184,7 @@ namespace Battleship
                 rowData[0] = rowHeader;
                 for (int col = 1; col <= Size; col++)
                 {
-                    rowData[col] = Cells[row, col - 1].Contents;
+                    rowData[col] = Tiles[row, col - 1].Contents;
                 }
                 table.AddRow(rowData);
 
@@ -208,9 +206,9 @@ namespace Battleship
 
         }
 
-        public Cell GetCell(char row, int col)
+        public Tile GetCell(char row, int col)
         {
-            return Cells[row - 'A', col - 1];
+            return Tiles[row - 'A', col - 1];
         }
     }    
 

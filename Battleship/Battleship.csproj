@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BattleshipService.cs" />
-    <Compile Include="Cell.cs" />
+    <Compile Include="Tile.cs" />
     <Compile Include="GameLogic.cs" />
     <Compile Include="HiddenGameboard.cs" />
     <Compile Include="IGameboard.cs" />

@@ -2,7 +2,7 @@
 public interface IGameboard
 {
     int Size { get; }
-    Cell[,] Cells { get; }
+    Tile[,] Tiles { get; }
 
     Table Display();
 }

@@ -13,17 +13,33 @@ namespace Battleship
         void RegisterPlayer(Player player);
 
         [OperationContract]
-        CellStatus SendPlayerGuess(Player player, Guess Guess);
+        TileStatus SendShot(string playerName, string opponentName, Guess Guess);
         [OperationContract]
-        Guess GetOpponentGuess(Player player);
+        Guess GetShot(Player player);
         [OperationContract]
         bool WaitForPlayers(int playerCount = 2);
         [OperationContract]
-        void NextTurn();
+        bool NextTurn();
         [OperationContract]
         void StartGame();
         [OperationContract]
         bool IsTurn(Player player);
+        [OperationContract]
+        int PlayerCount();
+        [OperationContract]
+        int GetMaxPlayers();
+        [OperationContract]
+        void SetMaxPlayers(int maxPlayers);
+        [OperationContract]
+        bool HasWon(Player player);
+        [OperationContract]
+        bool IsValidGuess(char row, int column);
+        [OperationContract]
+        List<Player> GetOpponents(Player player);
+        [OperationContract]
+        List<Player> GetPlayers(Player player);
+        [OperationContract]
+        bool IsValidName(string name);
     }
 
     // Define the data contract for the Player class
@@ -35,17 +51,31 @@ namespace Battleship
         [DataMember]
         public bool IsTurn { get; set; }
         [DataMember]
-        public List<Cell> OccupiedCells { get; set; }
+        public bool Lost { get; set; }
+        [DataMember]
+        public List<Ship> Ships { get; private set; }
 
         public Player(string name)
         {
             Name = name;
             IsTurn = false;
-            OccupiedCells = new List<Cell>();
+            Lost = false;
+            Ships = new List<Ship>();
         }
-        public void AddCells(List<Cell> cells)
+        public void AddShip(Ship ship)
         {
-            OccupiedCells.AddRange(cells);
+            Ships.Add(ship);
+        }
+        public bool HasLost()
+        {
+            foreach(Ship ship in Ships)
+            {
+                if (!ship.Sunk)
+                {
+                    return false;
+                }
+            }
+            return Lost = true;
         }
     }
 
@@ -65,21 +95,4 @@ namespace Battleship
         Column = column;
     }
 }
-
-    // Define the data contract for the CellStatus enum
-    //[DataContract]
-    //public enum CellStatus
-    //{
-    //    [EnumMember]
-    //    Miss,
-
-    //    [EnumMember]
-    //    Hit,
-
-    //    [EnumMember]
-    //    Sunk,
-
-    //    [EnumMember]
-    //    Win
-    //}
 }

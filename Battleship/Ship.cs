@@ -1,12 +1,24 @@
-﻿using Spectre.Console;
-using System;
+﻿using System;
+using System.Runtime.Serialization;
+using Spectre.Console;
 
+[DataContract]
 public class Ship
 {
-    public int Length { get; }
-    public Orientation ShipOrientation { get; }
+    [DataMember]
+    public int Length { get; private set; }
+
+    [DataMember]
+    public Orientation ShipOrientation { get; private set; }
+
+    [DataMember]
     public int Hits { get; private set; }
-    public Cell[] OccupiedCells { get; }
+
+    [DataMember]
+    public bool Sunk { get; private set; }
+
+    [DataMember]
+    public Tile[] OccupiedTiles { get; private set; }
 
     public Ship(int length, Orientation orientation, char row, int column)
     {
@@ -14,7 +26,7 @@ public class Ship
         ShipOrientation = orientation;
         Hits = 0;
 
-        OccupiedCells = new Cell[length];
+        OccupiedTiles = new Tile[length];
         for (int i = 0; i < length; i++)
         {
             int currentRow = row - 'A';
@@ -36,26 +48,40 @@ public class Ship
                     break;
             }
 
-            OccupiedCells[i] = new Cell((char)(currentRow + 'A'), currentColumn, CellStatus.Occupied);
+            OccupiedTiles[i] = new Tile((char)(currentRow + 'A'), currentColumn, TileStatus.Occupied);
         }
     }
 
     public bool IsSunk()
     {
-        return Hits >= Length;
+        Sunk = Hits >= Length;
+        return Sunk;
     }
 
-    public void Hit()
+    public void Hit(char row, int column)
     {
-        Hits++;
+        foreach (Tile tile in OccupiedTiles)
+        {
+            if (tile.Row == row && tile.Column == column && tile.Status == TileStatus.Occupied)
+            {
+                Hits++;
+                Sunk = Hits >= Length;
+                tile.SetStatus(TileStatus.Hit);
+            }
+        }
     }
 
 }
 
+[DataContract]
 public enum Orientation
 {
+    [EnumMember]
     Up,
+    [EnumMember]
     Down,
+    [EnumMember]
     Left,
+    [EnumMember]
     Right
 }

@@ -1,31 +1,20 @@
 ﻿using Spectre.Console;
 using Battleship;
+
+// proxy gameboard
 public class HiddenGameBoard : Gameboard
 {
     public Gameboard gameboard;
 
-    public HiddenGameBoard(Gameboard board)
+    public HiddenGameBoard()
     {
-        gameboard = board;
-        for (int row = 0; row < board.Size; row++)
+        gameboard = new Gameboard();
+        for (int row = 0; row < gameboard.Size; row++)
         {
-            for (int col = 0; col < board.Size; col++)
+            for (int col = 0; col < gameboard.Size; col++)
             {
-                Cells[row, col] = new Cell((char)('A' + row), col, CellStatus.Unknown);
+                Tiles[row, col] = new Tile((char)('A' + row), col, TileStatus.Unknown);
             }
         }
     }
-
-    public void ApplyGuess(Guess guess)
-    {
-        Guesses.Add(guess);
-        CellStatus status = gameboard.AddGuess(guess);
-        Cells[guess.Row - 'A', guess.Column - 1].SetStatus(status);
-
-    }
-    public bool HasLost()
-    {
-        return false;
-    }
-
 }
