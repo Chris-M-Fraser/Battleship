@@ -52,12 +52,6 @@ public class Ship
         }
     }
 
-    public bool IsSunk()
-    {
-        Sunk = Hits >= Length;
-        return Sunk;
-    }
-
     public void Hit(char row, int column)
     {
         foreach (Tile tile in OccupiedTiles)

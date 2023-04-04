@@ -48,7 +48,8 @@ namespace Battleship
                 var orientationPrompt = new SelectionPrompt<Orientation>()
                     .Title("[green]Select the ship's orientation:[/]")
                     .AddChoices(Orientation.Up, Orientation.Down, Orientation.Left, Orientation.Right)
-                    .UseConverter(o => $"[blue]{o}[/]");
+                    .UseConverter(o => $"[blue]{o}[/]")
+                    .WrapAround();
 
                 var orientation = AnsiConsole.Prompt(orientationPrompt);
                 AnsiConsole.MarkupLine("[bold green]Orientation:[/] [blue]" + orientation + "[/]");
@@ -95,15 +96,6 @@ namespace Battleship
                 }
             }
             return true;
-        }
-        public List<Tile> GetOccupiedTiles()
-        {
-            List<Tile> tiles = new List<Tile>();
-            foreach(Ship ship in Ships)
-            {
-                tiles.AddRange(ship.OccupiedTiles);
-            }
-            return tiles;
         }
 
         private bool CanPlaceShip(Ship ship)

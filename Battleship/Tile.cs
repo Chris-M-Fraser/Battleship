@@ -16,7 +16,7 @@ public class Tile
     [DataMember]
     public string Contents { get; set; }
 
-    public Tile() { } // Add a parameterless constructor for serialization
+    public Tile() { } // parameterless constructor for serialization
 
     public Tile(char row, int column, TileStatus status)
     {

@@ -122,10 +122,6 @@ namespace Battleship
         {
             return _players.Find(p => p.Name == player.Name).IsTurn;
         }
-        public Player GetPlayer(string name)
-        {
-            return _players.Find(p => p.Name == name);
-        }
         public void StartGame()
         {
             _players[0].IsTurn = true;
@@ -150,7 +146,7 @@ namespace Battleship
             {
                 _players[nextPlayerIndex].IsTurn = true;
             }
-            Console.WriteLine("Player " + nextPlayerIndex + 1 + "'s turn ");
+            Console.WriteLine($"Player {nextPlayerIndex + 1}'s turn ");
             return true;
         }
 

@@ -138,6 +138,7 @@ namespace Battleship
                             }
                         }
                     }
+
                     // Get player's Guess
                     for (int i = 1; i < players.Count; i++)
                     {
@@ -168,10 +169,11 @@ namespace Battleship
                                 row = Char.ToUpper(coordinates[0]);
                                 column = int.Parse(coordinates.Substring(1));
 
-                                // Send player's Guess to the WCF service
+
                             } while (!serviceClient.IsValidGuess(row, column));
                             Guess guess = new Guess(row, column);
 
+                            // Send player's Guess to the WCF service
                             TileStatus status = serviceClient.SendShot(player.Name, players[i].Name, guess);
                             gameboards[i].ApplyTileStatus(guess.Row, guess.Column, status);
 
@@ -183,7 +185,6 @@ namespace Battleship
                             DisplayGameboards(gameboards, players);
                         }
                     }
-
 
                     serviceClient.NextTurn();
                 }
@@ -224,17 +225,16 @@ namespace Battleship
         private static void SetupShips(Gameboard gameBoard, Player player)
         {
             // FOR LIVE VERSION
-
-            /*int[] shipLengths = new int[] { 2, 3, 3, 4, 5 };
+            int[] shipLengths = new int[] { 2, 3, 3, 4, 5 };
             foreach (int length in shipLengths)
             {
                 Ship ship = gameBoard.PlaceShipPrompt(length);
                 player.AddShip(ship);
-            }*/
+            }
 
             // FOR TESTING
-            gameBoard.PlaceShip(new Ship(2, Orientation.Right, 'A', 3));
-            player.AddShip(new Ship(2, Orientation.Right, 'A', 3));
+            //gameBoard.PlaceShip(new Ship(2, Orientation.Right, 'A', 3));
+            //player.AddShip(new Ship(2, Orientation.Right, 'A', 3));
 
         }
         public static string GetName()
@@ -248,8 +248,11 @@ namespace Battleship
                 new SelectionPrompt<int>()
                     .Title("[bold yellow]How many players (including you) will be playing?[/]")
                     .PageSize(10)
-                    .AddChoices(new[] { 2, 3, 4 }));
+                    .AddChoices(new[] { 2, 3, 4 })
+                    .WrapAround());
         }
+
+        // display gameboards and legend
         private static void DisplayGameboards(List<Gameboard> gameboards, List<Player> players)
         {
             Table table = new Table();
@@ -277,12 +280,12 @@ namespace Battleship
             AnsiConsole.Write(table);
         }
 
-
-
+        // display gameboards w/o players
         private static void DisplayGameboards(List<Gameboard> gameboards)
         {
             Table table = new Table();
 
+            // Create an array of IRenderable for gameboards and legend
             List<IRenderable> renderables = new List<IRenderable>();
             foreach (Gameboard gameboard in gameboards)
             {
@@ -301,6 +304,7 @@ namespace Battleship
             AnsiConsole.Write(table);
         }
 
+        // return legend table
         private static Table DisplayLegend()
         {
             return new Table()

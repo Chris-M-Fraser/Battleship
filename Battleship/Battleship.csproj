@@ -63,10 +63,9 @@
   <ItemGroup>
     <Compile Include="BattleshipService.cs" />
     <Compile Include="Tile.cs" />
-    <Compile Include="GameLogic.cs" />
+    <Compile Include="Gameboard.cs" />
     <Compile Include="HiddenGameboard.cs" />
     <Compile Include="IGameboard.cs" />
-    <Compile Include="Menu.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ship.cs" />
